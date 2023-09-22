@@ -65,15 +65,15 @@ int main(int argc, char *argv[]){
 			exit(EXIT_FAILURE);
 		}			
 		//get current working directory path
-		printf("hacker1@hacker:%s$\n", buf);
+		printf("hacker1@hacker:%s$ ", buf);
 
 		char* user_input;
 		user_input = inputLine(stdin, 10);
    	    char** tokens = parseLine(user_input);
 
-		for(int i = 0; tokens[i] != NULL; i++){
-   			printf("\n%s\n", tokens[i]);
-		}	
+		// for(int i = 0; tokens[i] != NULL; i++){
+   		// 	printf("\n%s\n", tokens[i]);
+		// }	
 
 		char * command = tokens[0];
 
@@ -81,12 +81,6 @@ int main(int argc, char *argv[]){
 			exit(0);
 		} 
 		else if (strcmp (command, "cd") == 0){
-			printf("Here\n");
-			if(tokens[1] == NULL){
-				printf("Invalid Command");
-				continue;
-			}
-			printf("%s\n",tokens[1]);
 			chdir(tokens[1]);
 			
 		}
@@ -101,7 +95,6 @@ int main(int argc, char *argv[]){
 				if (endID == childID) {  /* child ended                 */
 					if (WIFEXITED(status)){
 						printf("child finished");
-						continue;
 					}
 					else if (WIFSIGNALED(status)){
 						printf("Child ended because of an uncaught signal.n");
@@ -111,7 +104,9 @@ int main(int argc, char *argv[]){
 					exit(EXIT_SUCCESS);
 				}
 			}else{
-				
+				printf("Execve\n");
+				execve(tokens[0], tokens, NULL);
+				continue;
 			}
 		}
 
