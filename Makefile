@@ -1,5 +1,5 @@
 all: 
-	gcc -Wall wei-chi-sh.c -o shell    
+	gcc -Wall wei-chi-sh.c -ggdb3 -o shell    
 
 run: 
 	./shell

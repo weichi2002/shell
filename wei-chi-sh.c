@@ -14,13 +14,15 @@ char *read_command_naive(void){
 	char *buf = malloc(sizeof(char) * bufsize);
 	int pos = 0;
 
+
 	while(1){
 		char c = getchar();
 		if(c !='\n'){
 			//Need to allocate more space, doubling the memory every time as needed.
 			if(pos == bufsize -1){
-				buf = realloc(buf, bufsize*2);
-				bufsize = bufsize * 2;
+				bufsize *= 2;
+				buf = realloc(buf, bufsize);
+				
 			}
 			buf[pos++] = c;
 		}
@@ -31,29 +33,29 @@ char *read_command_naive(void){
 		}
 	}
 }
-char *inputLine(FILE* fp, size_t size){
-    char *str;
-    int ch;
-    size_t len = 0;
-    str = realloc(NULL, sizeof(*str)*size);
+// char *inputLine(FILE* fp, size_t size){
+//     char *str;
+//     int ch;
+//     size_t len = 0;
+//     str = realloc(NULL, sizeof(*str)*size);
 
-    if (!str) return str;
+//     if (!str) return str;
 
-    while(EOF!=(ch=fgetc(fp)) && ch != '\n'){
-        str[len++]=ch;
-        if(len==size){
-            str = realloc(str, sizeof(*str)*(size+=16));
-            if(!str)return str;
-        }
-    }
-    str[len++]= '\0';
+//     while(EOF!=(ch=fgetc(fp)) && ch != '\n'){
+//         str[len++]=ch;
+//         if(len==size){
+//             str = realloc(str, sizeof(*str)*(size+=16));
+//             if(!str)return str;
+//         }
+//     }
+//     str[len++]= '\0';
 
-    return realloc(str, sizeof(*str)*len);
-}
+//     return realloc(str, sizeof(*str)*len);
+// }
 
 //Basically the same idea as inputLine function, dynamically allocate memory for the size.
 char ** parseLine(char* line){
-	int bufsize = 64;
+	int bufsize = 16;
 	int position = 0;
 	char **params = malloc(bufsize * sizeof(char*));
 	char* param;
@@ -64,14 +66,13 @@ char ** parseLine(char* line){
 		position++;
 
 		if (position >= bufsize) {
-		bufsize += 64;
-		params = realloc(params, bufsize * sizeof(char*));
-		
-    }
+			bufsize *= 2;
+			params = realloc(params, bufsize * sizeof(char*));
+    	}
 
     param = strtok(NULL, " ");
   }
-  params[position] = NULL;
+  params[position] = '\0';
   return params;
 
 }
@@ -81,14 +82,14 @@ int main(){
 	while(1){
 		//https://www.delftstack.com/howto/c/get-current-directory-in-c/
 		//get the current working directory first
-		char *buf = getcwd(NULL, 0);
+		char *path = getcwd(NULL, 0);
 		//check if the path exists
-		if (buf == NULL) {
+		if (path == NULL) {
 			perror("getcwd");
 			exit(EXIT_FAILURE);
 		}			
 		//get current working directory path
-		printf("hacker1@hacker:%s$ ", buf);
+		printf("hacker1@hacker:%s$ ", path);
 
 		char* user_input;
 		user_input = read_command_naive();
@@ -137,6 +138,7 @@ int main(){
 		//Freeing this because malloc/realloc were called in the functions used by them.
 		free(user_input);
 		free(tokens);
+		free(path);
 	}
 
 	return 0;
