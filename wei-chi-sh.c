@@ -101,7 +101,7 @@ int main(){
 		else if(strcmp (tokens[0], "echo") ==0){
 			for(int i = 1; tokens[i] != NULL; i++)
 				printf("%s ", tokens[i]);
-			printf("\ntrtok");
+			printf("\n");
 		}
 		else{
 			//https://support.sas.com/documentation/onlinedoc/sasc/doc/lr2/waitpid.html				
@@ -123,7 +123,7 @@ int main(){
 				
 			}else{
 				// printf("CHILD\n");
-				 //execvp returns -1 if the command is not executable
+				 //execvp returns -1 if the command is not valid
 				 if (execvp(tokens[0], tokens) == -1){
 					printf("Invalid Command\n");
 					exit(EXIT_FAILURE);
