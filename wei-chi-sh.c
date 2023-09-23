@@ -8,6 +8,29 @@
 
 //reads a line of input from a file, dynamically allocates memory for it, and adjusts the allocated size as needed. It then returns a pointer to the resulting string.
 //https://stackoverflow.com/questions/16870485/how-can-i-read-an-input-string-of-unknown-length
+
+char *read_command_naive(void){
+	int bufsize = 4;
+	char *buf = malloc(sizeof(char) * bufsize);
+	int pos = 0;
+
+	while(1){
+		char c = getchar();
+		if(c !='\n'){
+			//Need to allocate more space, doubling the memory every time as needed.
+			if(pos == bufsize -1){
+				buf = realloc(buf, bufsize*2);
+				bufsize = bufsize * 2;
+			}
+			buf[pos++] = c;
+		}
+		else {
+			buf[pos] = '\0'; // null byte
+			printf("buffer: %s\n", buf);
+			return buf;
+		}
+	}
+}
 char *inputLine(FILE* fp, size_t size){
     char *str;
     int ch;
@@ -68,12 +91,12 @@ int main(){
 		printf("hacker1@hacker:%s$ ", buf);
 
 		char* user_input;
-		user_input = inputLine(stdin, 10);
+		user_input = read_command_naive();
    	    char** tokens = parseLine(user_input);
 
-		// for(int i = 0; tokens[i] != NULL; i++){
-   		// 	printf("%s ", tokens[i]);
-		// }	
+		for(int i = 0; tokens[i] != NULL; i++){
+   			printf("%s ", tokens[i]);
+		}	
 
 		char * command = tokens[0];
 
@@ -111,7 +134,7 @@ int main(){
 			}
 		}
 
-		//Freeing this because malloc were called in the functions used by them.
+		//Freeing this because malloc/realloc were called in the functions used by them.
 		free(user_input);
 		free(tokens);
 	}
