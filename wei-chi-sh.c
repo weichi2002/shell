@@ -54,7 +54,7 @@ char ** parseLine(char* line){
 }
 
 
-int main(int argc, char *argv[]){ 
+int main(){ 
 	while(1){
 		//https://www.delftstack.com/howto/c/get-current-directory-in-c/
 		//get the current working directory first
@@ -104,8 +104,9 @@ int main(int argc, char *argv[]){
 				
 			}else{
 				 printf("CHILD\n");
-				 if (execvp(tokens[0], tokens)){
-					perror("Invalid Command");
+				 //execvp returns -1 if the command is not executable
+				 if (execvp(tokens[0], tokens) == -1){
+					printf("Invalid Command\n");
 				 }
 			}
 		}
