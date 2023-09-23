@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
    	    char** tokens = parseLine(user_input);
 
 		// for(int i = 0; tokens[i] != NULL; i++){
-   		// 	printf("\n%s\n", tokens[i]);
+   		// 	printf("%s ", tokens[i]);
 		// }	
 
 		char * command = tokens[0];
@@ -89,27 +89,28 @@ int main(int argc, char *argv[]){
 			pid_t childID = fork();
 			pid_t endID;
 			if(childID != 0){
+				printf("PARENT\n");
 				int status;
-				endID = waitpid(childID, &status, WNOHANG|WUNTRACED);
-
-				if (endID == childID) {  /* child ended                 */
-					if (WIFEXITED(status)){
-						printf("child finished");
-					}
-					else if (WIFSIGNALED(status)){
-						printf("Child ended because of an uncaught signal.n");
-					}
-					else if (WIFSTOPPED(status))
-						printf("Child process has stopped.n");
-					exit(EXIT_SUCCESS);
+				endID = waitpid(childID, &status, 0);
+				if (endID == -1) {
+					perror("waitpid");
+					exit(EXIT_FAILURE);
 				}
+				if (WIFEXITED(status)) {
+					printf("Child process %d exited normally with status %d\n", endID, WEXITSTATUS(status));
+				} else if (WIFSIGNALED(status)) {
+					//printf("Child process %d terminated by signal %d\n", endID, WTERMSIG(status));
+				}
+				
 			}else{
-				printf("Execve\n");
-				execve(tokens[0], tokens, NULL);
-				continue;
+				 printf("CHILD\n");
+				 if (execvp(tokens[0], tokens)){
+					perror("Invalid Command");
+				 }
 			}
 		}
 
+		//Freeing this because malloc were called in the functions used by them.
 		free(user_input);
 		free(tokens);
 	}
