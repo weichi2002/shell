@@ -5,21 +5,21 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+#define FALSE 0
+#define TRUE 1
 
-//reads a line of input from a file, dynamically allocates memory for it, and adjusts the allocated size as needed. It then returns a pointer to the resulting string.
-//https://stackoverflow.com/questions/16870485/how-can-i-read-an-input-string-of-unknown-length
 
-char *read_command_naive(void){
+//reads a line of input from a file, dynamically allocates memory for it, and adjusts the allocated size as needed. 
+char *readCommand(void){
 	int bufsize = 4;
 	char *buf = malloc(sizeof(char) * bufsize);
 	int pos = 0;
-
 
 	while(1){
 		char c = getchar();
 		if(c !='\n'){
 			//Need to allocate more space, doubling the memory every time as needed.
-			if(pos == bufsize -1){
+			if(pos >= bufsize){
 				bufsize *= 2;
 				buf = realloc(buf, bufsize);
 				
@@ -28,32 +28,13 @@ char *read_command_naive(void){
 		}
 		else {
 			buf[pos] = '\0'; // null byte
-			printf("buffer: %s\n", buf);
+			// printf("buffer: %s\n", buf);
 			return buf;
 		}
 	}
 }
-// char *inputLine(FILE* fp, size_t size){
-//     char *str;
-//     int ch;
-//     size_t len = 0;
-//     str = realloc(NULL, sizeof(*str)*size);
 
-//     if (!str) return str;
-
-//     while(EOF!=(ch=fgetc(fp)) && ch != '\n'){
-//         str[len++]=ch;
-//         if(len==size){
-//             str = realloc(str, sizeof(*str)*(size+=16));
-//             if(!str)return str;
-//         }
-//     }
-//     str[len++]= '\0';
-
-//     return realloc(str, sizeof(*str)*len);
-// }
-
-//Basically the same idea as inputLine function, dynamically allocate memory for the size.
+//Basically the same idea as readCommand function, dynamically allocate memory for the size.
 char ** parseLine(char* line){
 	int bufsize = 16;
 	int position = 0;
@@ -66,6 +47,7 @@ char ** parseLine(char* line){
 		position++;
 
 		if (position >= bufsize) {
+			//doubling the size as needed
 			bufsize *= 2;
 			params = realloc(params, bufsize * sizeof(char*));
     	}
@@ -77,6 +59,16 @@ char ** parseLine(char* line){
 
 }
 
+
+int checkValidInput(const char* input){
+	while (*input) {
+        if (*input != ' ') {
+            return TRUE; // The string is nonempty
+        }
+        input++;
+    }
+    return FALSE; // The string is empty
+}
 
 int main(){ 
 	while(1){
@@ -91,29 +83,32 @@ int main(){
 		//get current working directory path
 		printf("hacker1@hacker:%s$ ", path);
 
-		char* user_input;
-		user_input = read_command_naive();
-   	    char** tokens = parseLine(user_input);
+		char* userInput;
+		userInput = readCommand();
 
-		for(int i = 0; tokens[i] != NULL; i++){
-   			printf("%s ", tokens[i]);
-		}	
+		//validate the input so that it does not crash when user enters nothing
+		if(checkValidInput(userInput) == FALSE)
+			continue;
 
-		char * command = tokens[0];
+   	    char** tokens = parseLine(userInput);
 
-		if (strcmp (command, "exit") == 0){
+		if (strcmp (tokens[0], "exit") == 0){
 			exit(0);
 		} 
-		else if (strcmp (command, "cd") == 0){
+		else if (strcmp (tokens[0], "cd") == 0){
 			chdir(tokens[1]);
-			
+		}
+		else if(strcmp (tokens[0], "echo") ==0){
+			for(int i = 1; tokens[i] != NULL; i++)
+				printf("%s ", tokens[i]);
+			printf("\ntrtok");
 		}
 		else{
-			//https://support.sas.com/documentation/onlinedoc/sasc/doc/lr2/waitpid.htm				
+			//https://support.sas.com/documentation/onlinedoc/sasc/doc/lr2/waitpid.html				
 			pid_t childID = fork();
 			pid_t endID;
 			if(childID != 0){
-				printf("PARENT\n");
+				// printf("PARENT\n");
 				int status;
 				endID = waitpid(childID, &status, 0);
 				if (endID == -1) {
@@ -121,22 +116,23 @@ int main(){
 					exit(EXIT_FAILURE);
 				}
 				if (WIFEXITED(status)) {
-					printf("Child process %d exited normally with status %d\n", endID, WEXITSTATUS(status));
+					// printf("Child process %d exited normally with status %d\n", endID, WEXITSTATUS(status));
 				} else if (WIFSIGNALED(status)) {
 					//printf("Child process %d terminated by signal %d\n", endID, WTERMSIG(status));
 				}
 				
 			}else{
-				 printf("CHILD\n");
+				// printf("CHILD\n");
 				 //execvp returns -1 if the command is not executable
 				 if (execvp(tokens[0], tokens) == -1){
 					printf("Invalid Command\n");
+					exit(EXIT_FAILURE);
 				 }
 			}
 		}
 
 		//Freeing this because malloc/realloc were called in the functions used by them.
-		free(user_input);
+		free(userInput);
 		free(tokens);
 		free(path);
 	}
